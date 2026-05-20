@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "The Shoe Hub"
+version = "1.0.0"
+id = "artifacts/shoe-hub"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 26247
+
+[services.development]
+run = "pnpm --filter @workspace/shoe-hub run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/shoe-hub", "run", "build" ]
+publicDir = "artifacts/shoe-hub/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "26247"
+BASE_PATH = "/"

@@ -1,36 +1,52 @@
-# [Project name]
+# The Shoe Hub — Uganda
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+A luxury women's footwear e-commerce storefront for The Shoe Hub, a Kampala-based retailer. Features a product catalogue, cart, WhatsApp/email checkout, and multiple UI themes.
 
 ## Run & Operate
 
+- `pnpm --filter @workspace/shoe-hub run dev` — run the frontend (auto-assigned PORT)
 - `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
 - `pnpm run typecheck` — full typecheck across all packages
 - `pnpm run build` — typecheck + build all packages
-- `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
-- `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
 
 ## Stack
 
 - pnpm workspaces, Node.js 24, TypeScript 5.9
-- API: Express 5
-- DB: PostgreSQL + Drizzle ORM
-- Validation: Zod (`zod/v4`), `drizzle-zod`
-- API codegen: Orval (from OpenAPI spec)
-- Build: esbuild (CJS bundle)
+- Frontend: React + Vite (`artifacts/shoe-hub/`)
+- API: Express 5 (`artifacts/api-server/`)
+- DB: PostgreSQL + Drizzle ORM (not yet wired; reserved for future admin/backend use)
+- Styling: Pure CSS custom properties (no Tailwind in the storefront — glass-morphism design)
+- Fonts: Cormorant Garamond (serif) + DM Sans (sans-serif) via Google Fonts
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `artifacts/shoe-hub/src/` — React app source
+  - `context/StoreContext.tsx` — global state (cart, theme, products, toasts)
+  - `components/` — all UI components (Navbar, Hero, ShopSection, CartDrawer, etc.)
+  - `utils.ts` — price formatting, size constants, WA/email config
+  - `types.ts` — Product, CartItem types
+- `artifacts/shoe-hub/public/` — product images (1.jpg–29.jpg, pic.jpg, img_1779302508_5a251b97.png) + products.json
+- `artifacts/api-server/` — Express API server (healthz only; extend for admin/analytics)
+- `lib/db/` — Drizzle ORM schema (empty; provision DB when needed)
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- No backend needed for storefront: products load from `public/products.json`, falling back to `localStorage` (synced from admin) or hardcoded fallback items.
+- Cart and checkout are client-side only — orders are sent via WhatsApp deep-link (`wa.me/`) or `mailto:` — no server-side order storage.
+- Three themes (white/dark/gaze) are implemented via CSS `[data-theme]` attribute on `<body>`.
+- All CSS uses custom properties defined in `src/index.css` — no Tailwind utility classes in the storefront components (Tailwind import is retained for any future shadcn/radix components).
+- Images are served from `/public/` and referenced with `import.meta.env.BASE_URL` prefix.
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- Hero section with floating product card and animated badge
+- Scrolling marquee strip
+- Product grid with filter pills (All / Pump / Kitten / Block / Buckle)
+- Product quick-view modal with size selector
+- Slide-in cart drawer with quantity controls
+- WhatsApp + email order confirmation flow
+- Sections: New In, Lookbook, About, Size Guide, Delivery & Returns, Contact
+- Footer with navigation links
 
 ## User preferences
 
@@ -38,7 +54,9 @@ _Populate as you build — explicit user instructions worth remembering across s
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- Products load from `/products.json` relative to the app base URL — make sure images in `products.json` use bare filenames (e.g. `23.jpg`), not full paths.
+- Admin syncs products to `localStorage("shoeHubProducts")` — the storefront polls this every 30s.
+- The `track.php` endpoint from the original app is not ported (PHP backend). Engagement tracking is stored in `localStorage("productStats")` only.
 
 ## Pointers
 
