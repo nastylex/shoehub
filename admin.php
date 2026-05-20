@@ -1,17 +1,17 @@
 <?php
 session_start();
 
-// Configuration
+
 $ADMIN_PASSWORD = 'shoehub2024';
 $PRODUCTS_FILE = 'products.json';
 $UPLOAD_DIR = 'uploads/';
 
-// Create uploads directory if it doesn't exist
+
 if (!is_dir($UPLOAD_DIR)) {
     mkdir($UPLOAD_DIR, 0755, true);
 }
 
-// Authentication
+
 if (!isset($_SESSION['admin_authenticated'])) {
     if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login_password'])) {
         if ($_POST['login_password'] === $ADMIN_PASSWORD) {
@@ -133,7 +133,7 @@ if (!isset($_SESSION['admin_authenticated'])) {
             <button type="submit" class="login-btn">Access Dashboard</button>
             <?php if (isset($login_error)) echo '<div class="login-error">✕ ' . htmlspecialchars($login_error) . '</div>'; ?>
         </form>
-        <div style="margin-top: 20px; font-size: 0.72rem; color: var(--text-sub);">Default: <strong>shoehub2024</strong></div>
+        <div style="margin-top: 20px; font-size: 0.72rem; color: var(--text-sub);">Default: <strong>shoehub2026</strong></div>
     </div>
 </body>
 </html>
@@ -142,13 +142,13 @@ if (!isset($_SESSION['admin_authenticated'])) {
     }
 }
 
-// Load products
+
 $products = [];
 if (file_exists($PRODUCTS_FILE)) {
     $products = json_decode(file_get_contents($PRODUCTS_FILE), true) ?: [];
 }
 
-// Handle image upload
+
 function handleImageUpload($file) {
     if ($file['error'] !== UPLOAD_ERR_OK) {
         return ['success' => false, 'error' => 'Upload failed'];
@@ -176,7 +176,7 @@ function handleImageUpload($file) {
     return ['success' => false, 'error' => 'Failed to save image'];
 }
 
-// Handle POST actions
+
 $message = '';
 $message_type = '';
 
@@ -192,7 +192,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $is_new = isset($_POST['product_new']) ? true : false;
         $img = $_POST['product_img'] ?? '';
         
-        // Handle image upload if provided
+
         if (isset($_FILES['product_image']) && $_FILES['product_image']['size'] > 0) {
             $upload = handleImageUpload($_FILES['product_image']);
             if ($upload['success']) {
@@ -237,11 +237,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $products[$key]['desc'] = trim($_POST['product_desc'] ?? '');
             $products[$key]['new'] = isset($_POST['product_new']) ? true : false;
             
-            // Handle new image upload
+
             if (isset($_FILES['product_image']) && $_FILES['product_image']['size'] > 0) {
                 $upload = handleImageUpload($_FILES['product_image']);
                 if ($upload['success']) {
-                    // Delete old image if it exists
+ 
                     if (!empty($products[$key]['img']) && file_exists($products[$key]['img'])) {
                         @unlink($products[$key]['img']);
                     }
@@ -266,7 +266,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         if ($key !== false) {
             $product_name = $products[$key]['name'];
-            // Delete image if it exists
+
             if (!empty($products[$key]['img']) && file_exists($products[$key]['img'])) {
                 @unlink($products[$key]['img']);
             }
@@ -281,7 +281,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Get product for editing
+
 $edit_product = null;
 if (isset($_GET['edit']) && is_numeric($_GET['edit'])) {
     $edit_id = intval($_GET['edit']);
@@ -342,7 +342,7 @@ if (isset($_GET['edit']) && is_numeric($_GET['edit'])) {
 
         .layout { display: flex; height: 100vh; }
 
-        /* Sidebar */
+
         .sidebar {
             width: 230px;
             background: var(--sidebar-bg);
@@ -681,7 +681,7 @@ if (isset($_GET['edit']) && is_numeric($_GET['edit'])) {
             margin-bottom: 12px;
         }
 
-        /* Buttons */
+
         .btn-group {
             display: flex;
             gap: 12px;
@@ -723,7 +723,6 @@ if (isset($_GET['edit']) && is_numeric($_GET['edit'])) {
             color: var(--accent);
         }
 
-        /* Products Grid */
         .products-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -905,17 +904,17 @@ if (isset($_GET['edit']) && is_numeric($_GET['edit'])) {
 <body data-theme="white">
 
 <div class="layout">
-    <!-- Sidebar -->
+
     <aside class="sidebar">
         <div>
             <div class="sb-brand">The Shoe Hub <span>Admin</span></div>
             <div class="nav-section">
                 <div class="nav-section-title">Dashboard</div>
                 <a href="admin.php" class="nav-item <?php echo !isset($_GET['edit']) ? 'active' : ''; ?>">
-                    📦 All Products
+                    All Products
                 </a>
                 <a href="admin.php?add=1" class="nav-item <?php echo isset($_GET['add']) ? 'active' : ''; ?>">
-                    ➕ Add Product
+                    Add Product
                 </a>
             </div>
         </div>
@@ -932,9 +931,9 @@ if (isset($_GET['edit']) && is_numeric($_GET['edit'])) {
         </div>
     </aside>
 
-    <!-- Main Content -->
+    
     <main class="main">
-        <!-- Header -->
+
         <div class="header">
             <div>
                 <div class="header-title">
@@ -949,7 +948,7 @@ if (isset($_GET['edit']) && is_numeric($_GET['edit'])) {
             </div>
         </div>
 
-        <!-- Content -->
+
         <div class="content">
             <?php if ($message): ?>
                 <div class="message <?php echo $message_type; ?>">
@@ -958,7 +957,7 @@ if (isset($_GET['edit']) && is_numeric($_GET['edit'])) {
             <?php endif; ?>
 
             <?php if ($edit_product || isset($_GET['add'])): ?>
-                <!-- Add/Edit Form -->
+    
                 <div class="form-card">
                     <form method="POST" enctype="multipart/form-data">
                         <input type="hidden" name="action" value="<?php echo $edit_product ? 'edit_product' : 'add_product'; ?>">
@@ -1028,10 +1027,10 @@ if (isset($_GET['edit']) && is_numeric($_GET['edit'])) {
 
                         <div class="btn-group">
                             <button type="submit" class="btn btn-primary">
-                                <?php echo $edit_product ? '💾 Update Product' : '➕ Add Product'; ?>
+                                <?php echo $edit_product ? 'Update Product' : 'Add Product'; ?>
                             </button>
                             <a href="admin.php" class="btn btn-secondary" style="text-decoration: none; display: flex; align-items: center; justify-content: center;">
-                                ✕ Cancel
+                                Cancel
                             </a>
                         </div>
                     </form>
@@ -1042,15 +1041,15 @@ if (isset($_GET['edit']) && is_numeric($_GET['edit'])) {
                 <div class="toolbar">
                     <div class="search-box">
                         <input type="text" id="searchInput" placeholder="Search products..." onkeyup="filterProducts()">
-                        <span class="search-icon">🔍</span>
+                        <span class="search-icon">S</span>
                     </div>
-                    <a href="admin.php?add=1" class="add-btn">➕ Add Product</a>
+                    <a href="admin.php?add=1" class="add-btn">Add Product</a>
                 </div>
 
                 <div id="productsContainer">
                     <?php if (empty($products)): ?>
                         <div class="empty-state">
-                            <div class="empty-icon">👠</div>
+                            <div class="empty-icon"></div>
                             <p>No products yet. <a href="admin.php?add=1" style="color: var(--accent);">Add your first product →</a></p>
                         </div>
                     <?php else: ?>
@@ -1132,7 +1131,7 @@ document.querySelectorAll('.theme-btn').forEach(btn => {
 </body>
 </html>
 <?php
-// Handle logout
+
 if (isset($_POST['logout'])) {
     session_destroy();
     header('Location: admin.php');
