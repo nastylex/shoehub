@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { Switch, Route } from "wouter";
 import { StoreProvider } from "./context/StoreContext";
 import Navbar from "./components/Navbar";
 import Hero from "./components/Hero";
@@ -15,9 +16,10 @@ import SizeGuideSection from "./components/SizeGuideSection";
 import DeliverySection from "./components/DeliverySection";
 import ContactSection from "./components/ContactSection";
 import Footer from "./components/Footer";
+import AdminPage from "./pages/AdminPage";
 import type { Product } from "./types";
 
-function AppContent() {
+function Storefront() {
   const [modalProduct, setModalProduct] = useState<Product | null>(null);
   const [shopFilter, setShopFilter] = useState<string | undefined>(undefined);
 
@@ -34,14 +36,12 @@ function AppContent() {
 
   return (
     <>
-      {/* Background */}
       <div className="bg-canvas" />
       <div className="bg-orb" />
       <div className="bg-orb" />
       <div className="bg-orb" />
 
       <Navbar onScrollTo={scrollTo} />
-
       <Hero onScrollTo={scrollTo} />
       <Marquee />
       <Features />
@@ -64,7 +64,10 @@ function AppContent() {
 export default function App() {
   return (
     <StoreProvider>
-      <AppContent />
+      <Switch>
+        <Route path="/admin" component={AdminPage} />
+        <Route component={Storefront} />
+      </Switch>
     </StoreProvider>
   );
 }
