@@ -29,14 +29,6 @@ function fmt(n: number) {
   return "UGX " + n.toLocaleString();
 }
 
-async function loadDefaultProducts(): Promise<Product[]> {
-  try {
-    const res = await fetch(`${import.meta.env.BASE_URL}products.json`);
-    if (res.ok) return await res.json();
-  } catch {}
-  return [];
-}
-
 function saveProducts(products: Product[]) {
   localStorage.setItem(LS_PRODUCTS, JSON.stringify(products));
 }
@@ -247,11 +239,7 @@ export default function AdminPage() {
   useEffect(() => {
     if (!authed) return;
     const stored = loadProducts();
-    if (stored) {
-      setProducts(stored);
-    } else {
-      loadDefaultProducts().then(p => setProducts(p));
-    }
+    if (stored) setProducts(stored);
   }, [authed]);
 
   function persist(updated: Product[]) {
@@ -272,11 +260,6 @@ export default function AdminPage() {
   function handleDelete(id: number) {
     persist(products.filter(p => p.id !== id));
     setConfirmDelete(null);
-  }
-
-  async function handleReset() {
-    const defaults = await loadDefaultProducts();
-    if (defaults.length) persist(defaults);
   }
 
   function logout() {
@@ -336,10 +319,7 @@ export default function AdminPage() {
           <h2 style={{ fontFamily: "var(--font-serif)", fontSize: "1.6rem", margin: 0 }}>
             Products {saved && <span style={{ fontSize: "0.85rem", color: "var(--accent)", fontFamily: "var(--font-sans)", fontWeight: 400 }}>✓ Saved</span>}
           </h2>
-          <div style={{ display: "flex", gap: 10 }}>
-            <button className="admin-btn-outline" onClick={handleReset}>Reset to defaults</button>
-            <button className="btn-primary" onClick={() => setEditing("new")}>+ Add product</button>
-          </div>
+          <button className="btn-primary" onClick={() => setEditing("new")}>+ Add product</button>
         </div>
 
         {/* Add / edit form */}
