@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import type { Product } from "../types";
 import { formatPrice, SIZES } from "../utils";
 import { useStore } from "../context/StoreContext";
+import { trackLove, trackCartAdd } from "../utils/tracking";
 
 interface ProductModalProps {
   product: Product | null;
@@ -17,6 +18,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
   useEffect(() => {
     if (product) {
       setSelectedSize(null);
+      setWished(false);
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "";
@@ -28,8 +30,16 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
     if (!product) return;
     const sz = selectedSize || "38";
     addToCart(product, sz);
+    trackCartAdd(product.id, product.name);
     showToast(`✓ ${product.name} (Size ${sz}) added`);
     onClose();
+  }
+
+  function handleWish() {
+    if (!product) return;
+    const next = !wished;
+    setWished(next);
+    if (next) trackLove(product.id, product.name);
   }
 
   function handleOverlayClick(e: React.MouseEvent) {
@@ -75,7 +85,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
               <button className="modal-add-btn" onClick={handleAdd}>Add to Cart</button>
               <button
                 className="modal-wish-btn"
-                onClick={() => setWished(w => !w)}
+                onClick={handleWish}
                 style={{ color: wished ? "#ff6b8a" : undefined, borderColor: wished ? "#ff6b8a" : undefined }}
               >
                 {wished ? "♥" : "♡"}

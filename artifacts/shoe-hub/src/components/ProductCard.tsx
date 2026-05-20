@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { Product } from "../types";
 import { formatPrice, SIZES } from "../utils";
+import { trackView, trackLike } from "../utils/tracking";
 
 interface ProductCardProps {
   product: Product;
@@ -12,8 +13,20 @@ export default function ProductCard({ product, onOpen, style }: ProductCardProps
   const [fav, setFav] = useState(false);
   const base = import.meta.env.BASE_URL || "/";
 
+  function handleOpen() {
+    trackView(product.id, product.name);
+    onOpen(product);
+  }
+
+  function handleLike(e: React.MouseEvent) {
+    e.stopPropagation();
+    const next = !fav;
+    setFav(next);
+    if (next) trackLike(product.id, product.name);
+  }
+
   return (
-    <div className="product-card" style={style} onClick={() => onOpen(product)}>
+    <div className="product-card" style={style} onClick={handleOpen}>
       <div className="card-img-wrap">
         <img
           src={`${base}${product.img}`}
@@ -24,15 +37,12 @@ export default function ProductCard({ product, onOpen, style }: ProductCardProps
           }}
         />
         <div className="card-overlay">
-          <button className="card-quick-buy" onClick={(e) => { e.stopPropagation(); onOpen(product); }}>
+          <button className="card-quick-buy" onClick={(e) => { e.stopPropagation(); handleOpen(); }}>
             Quick View
           </button>
         </div>
         {product.new && <div className="card-badge-new">New</div>}
-        <button
-          className={`card-fav${fav ? " active" : ""}`}
-          onClick={(e) => { e.stopPropagation(); setFav(f => !f); }}
-        >
+        <button className={`card-fav${fav ? " active" : ""}`} onClick={handleLike}>
           {fav ? "♥" : "♡"}
         </button>
       </div>

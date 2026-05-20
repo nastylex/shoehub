@@ -1,5 +1,10 @@
 import { useState, useEffect } from "react";
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
+  ResponsiveContainer, Legend, Cell
+} from "recharts";
 import type { Product } from "../types";
+import { loadStats, type ProductStat } from "../utils/tracking";
 
 const ADMIN_PASSWORD = "shoehub2026";
 const LS_AUTH = "shoeHubAdminAuth";
@@ -227,6 +232,132 @@ function ProductForm({
   );
 }
 
+/* ── Custom tooltip ── */
+function ChartTip({ active, payload, label }: { active?: boolean; payload?: { name: string; value: number; color: string }[]; label?: string }) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div style={{ background: "var(--card-bg)", border: "1px solid var(--glass-border)", borderRadius: 10, padding: "10px 14px", backdropFilter: "blur(12px)", fontSize: "0.82rem" }}>
+      <div style={{ fontWeight: 600, marginBottom: 6, color: "var(--text-main)" }}>{label}</div>
+      {payload.map(p => (
+        <div key={p.name} style={{ color: p.color, marginBottom: 2 }}>
+          {p.name}: <strong>{p.value}</strong>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ── Analytics section ── */
+function AnalyticsSection() {
+  const [stats, setStats] = useState<ProductStat[]>([]);
+
+  useEffect(() => {
+    setStats(loadStats());
+    const t = setInterval(() => setStats(loadStats()), 5000);
+    return () => clearInterval(t);
+  }, []);
+
+  function clearStats() {
+    localStorage.removeItem("productStats");
+    setStats([]);
+  }
+
+  const top10 = stats.slice(0, 10);
+  const totalViews = stats.reduce((a, s) => a + s.views, 0);
+  const totalLikes = stats.reduce((a, s) => a + s.likes, 0);
+  const totalLoves = stats.reduce((a, s) => a + s.loves, 0);
+  const totalCarts = stats.reduce((a, s) => a + s.cartAdds, 0);
+
+  const chartData = top10.map(s => ({
+    name: s.name.length > 16 ? s.name.slice(0, 15) + "…" : s.name,
+    Views: s.views,
+    Liked: s.likes,
+    Loved: s.loves,
+    "In Cart": s.cartAdds,
+  }));
+
+  const COLORS = { Views: "#c8a97e", Liked: "#ff9eb5", Loved: "#e8456a", "In Cart": "#6dbfa7" };
+
+  if (stats.length === 0) {
+    return (
+      <div style={{ marginBottom: 36 }}>
+        <h2 style={{ fontFamily: "var(--font-serif)", fontSize: "1.6rem", margin: "0 0 12px" }}>Analytics</h2>
+        <div className="glass-panel" style={{ textAlign: "center", padding: "40px 20px", color: "var(--muted)" }}>
+          <div style={{ fontSize: "2.5rem", marginBottom: 10 }}>📊</div>
+          <div style={{ fontWeight: 500, marginBottom: 6 }}>No engagement data yet</div>
+          <div style={{ fontSize: "0.85rem" }}>Data will appear here as customers browse and interact with products on the store.</div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ marginBottom: 36 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+        <h2 style={{ fontFamily: "var(--font-serif)", fontSize: "1.6rem", margin: 0 }}>Analytics</h2>
+        <button className="admin-btn-outline" style={{ fontSize: "0.8rem" }} onClick={clearStats}>Clear data</button>
+      </div>
+
+      {/* Engagement totals */}
+      <div className="admin-stats" style={{ marginBottom: 20 }}>
+        <div className="admin-stat-card">
+          <div className="admin-stat-val" style={{ color: "#c8a97e" }}>{totalViews}</div>
+          <div className="admin-stat-label">👁 Product views</div>
+        </div>
+        <div className="admin-stat-card">
+          <div className="admin-stat-val" style={{ color: "#ff9eb5" }}>{totalLikes}</div>
+          <div className="admin-stat-label">♡ Liked</div>
+        </div>
+        <div className="admin-stat-card">
+          <div className="admin-stat-val" style={{ color: "#e8456a" }}>{totalLoves}</div>
+          <div className="admin-stat-label">♥ Loved (wishlisted)</div>
+        </div>
+        <div className="admin-stat-card">
+          <div className="admin-stat-val" style={{ color: "#6dbfa7" }}>{totalCarts}</div>
+          <div className="admin-stat-label">🛒 Added to cart</div>
+        </div>
+      </div>
+
+      {/* Views chart */}
+      <div className="glass-panel" style={{ marginBottom: 16 }}>
+        <div style={{ fontFamily: "var(--font-serif)", fontSize: "1.15rem", fontWeight: 600, marginBottom: 16 }}>
+          Most Viewed Products
+        </div>
+        <ResponsiveContainer width="100%" height={220}>
+          <BarChart data={chartData} margin={{ top: 4, right: 8, left: -10, bottom: 40 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(200,169,126,0.15)" />
+            <XAxis dataKey="name" tick={{ fontSize: 11, fill: "var(--text-sub)" }} angle={-30} textAnchor="end" interval={0} />
+            <YAxis tick={{ fontSize: 11, fill: "var(--text-sub)" }} allowDecimals={false} />
+            <Tooltip content={<ChartTip />} />
+            <Bar dataKey="Views" radius={[4, 4, 0, 0]}>
+              {chartData.map((_, i) => <Cell key={i} fill={`rgba(200,169,126,${0.5 + (chartData.length - i) / chartData.length * 0.5})`} />)}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+
+      {/* Liked vs Loved vs Cart */}
+      <div className="glass-panel">
+        <div style={{ fontFamily: "var(--font-serif)", fontSize: "1.15rem", fontWeight: 600, marginBottom: 16 }}>
+          Liked ♡ · Loved ♥ · Added to Cart 🛒
+        </div>
+        <ResponsiveContainer width="100%" height={240}>
+          <BarChart data={chartData} margin={{ top: 4, right: 8, left: -10, bottom: 40 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(200,169,126,0.15)" />
+            <XAxis dataKey="name" tick={{ fontSize: 11, fill: "var(--text-sub)" }} angle={-30} textAnchor="end" interval={0} />
+            <YAxis tick={{ fontSize: 11, fill: "var(--text-sub)" }} allowDecimals={false} />
+            <Tooltip content={<ChartTip />} />
+            <Legend wrapperStyle={{ fontSize: "0.82rem", paddingTop: 8 }} />
+            <Bar dataKey="Liked" fill={COLORS["Liked"]} radius={[3, 3, 0, 0]} />
+            <Bar dataKey="Loved" fill={COLORS["Loved"]} radius={[3, 3, 0, 0]} />
+            <Bar dataKey="In Cart" fill={COLORS["In Cart"]} radius={[3, 3, 0, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+}
+
 /* ── Main admin page ── */
 export default function AdminPage() {
   const [authed, setAuthed] = useState(!!localStorage.getItem(LS_AUTH));
@@ -314,7 +445,10 @@ export default function AdminPage() {
           </div>
         </div>
 
-        {/* Add product / reset */}
+        {/* Analytics */}
+        <AnalyticsSection />
+
+        {/* Add product */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
           <h2 style={{ fontFamily: "var(--font-serif)", fontSize: "1.6rem", margin: 0 }}>
             Products {saved && <span style={{ fontSize: "0.85rem", color: "var(--accent)", fontFamily: "var(--font-sans)", fontWeight: 400 }}>✓ Saved</span>}
